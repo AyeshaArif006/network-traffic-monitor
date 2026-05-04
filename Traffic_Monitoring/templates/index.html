@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER NET-SCAN | Pro Analytics</title>
+    <style>
+        :root {
+            --bg-dark: #05070a;
+            --sidebar-bg: #0f121a;
+            --accent: #a855f7; /* Electric Purple */
+            --cyan: #22d3ee;   /* Cyan Pulse */
+            --text-main: #f8fafc;
+            --text-dim: #64748b;
+            --success: #10b981;
+            --danger: #f43f5e;
+            --border: rgba(168, 85, 247, 0.2);
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 0;
+            border-right: 1px solid var(--border);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 0 30px;
+            margin-bottom: 50px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1rem;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0;
+            font-weight: 900;
+        }
+
+        .nav-item {
+            padding: 18px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid transparent;
+            letter-spacing: 1px;
+        }
+
+        .nav-item:hover {
+            color: var(--text-main);
+            background: rgba(34, 211, 238, 0.05);
+        }
+
+        .nav-item.active {
+            color: var(--cyan);
+            background: rgba(34, 211, 238, 0.1);
+            border-left: 4px solid var(--cyan);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: radial-gradient(circle at 50% 0%, #111029 0%, #05070a 70%);
+        }
+
+        .page { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- UI COMPONENTS --- */
+        
+        .cover-card {
+            background: rgba(15, 18, 26, 0.6);
+            backdrop-filter: blur(20px);
+            max-width: 850px; /* Slightly wider for the 3-column grid */
+            margin: 60px auto;
+            padding: 80px 40px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            text-align: center;
+            position: relative;
+        }
+
+        .cover-card h1 { 
+            font-size: 3.8rem; 
+            margin: 0; 
+            letter-spacing: -2px;
+            background: linear-gradient(to bottom, #fff 40%, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .metrics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .pro-card {
+            background: linear-gradient(145deg, #0f121a 0%, #161b26 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pro-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--cyan);
+            box-shadow: 0 0 15px var(--cyan);
+        }
+
+        .chart-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .big-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-top: 5px;
+        }
+
+        /* Circular Progress Ring */
+        .progress-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .progress-ring svg { transform: rotate(-90deg); }
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+        }
+        .ring-bg { stroke: rgba(255,255,255,0.05); }
+        .ring-fill { 
+            stroke: var(--cyan); 
+            stroke-dasharray: 226; 
+            stroke-dashoffset: 226; 
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        /* Distribution Bars */
+        .dist-bar-wrapper { margin-top: 18px; }
+        .dist-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .dist-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .dist-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--cyan));
+            transition: width 0.8s ease-in-out;
+        }
+
+        #logBox {
+            background: #000;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            height: 450px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid #1e293b;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .search-container {
+            background: var(--sidebar-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.7rem; color: var(--cyan); text-transform: uppercase; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            background: #05070a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            outline: none;
+            transition: border 0.3s;
+            box-sizing: border-box;
+        }
+        .input-group input:focus { border-color: var(--cyan); }
+
+        .table-wrapper { 
+            overflow-x: auto; 
+            border-radius: 12px; 
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #161b26; padding: 18px; text-align: left; color: var(--cyan); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+        td { padding: 15px 18px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        tr:hover td { background: rgba(34, 211, 238, 0.02); }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            border: none;
+            text-transform: uppercase;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            transition: all 0.3s;
+            font-size: 0.75rem;
+        }
+        .btn-primary { background: var(--cyan); color: #000; }
+        .btn-primary:hover { box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); transform: translateY(-2px); }
+        .btn-stop { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); }
+        .btn-outline:hover { border-color: var(--text-main); color: var(--text-main); }
+
+        .status-pill { display: flex; align-items: center; gap: 10px; color: var(--text-dim); font-size: 0.75rem; font-weight: bold; }
+        .pulse { width: 10px; height: 10px; background: var(--text-dim); border-radius: 50%; }
+        .active-pulse .pulse { background: var(--success); box-shadow: 0 0 12px var(--success); animation: blink 1.2s infinite; }
+        @keyframes blink { 50% { opacity: 0.2; } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>NETWORK TRAFFIC MONITORING</h2>
+        </div>
+        <div class="nav-item active" onclick="showPage('welcome')">CORE INTERFACE</div>
+        <div class="nav-item" onclick="showPage('monitor')">LIVE TRAFFIC</div>
+        <div class="nav-item" onclick="showPage('stats')">DATA STATISTICS</div>
+        <div class="nav-item" onclick="showPage('filter')">DEEP SEARCH</div>
+    </div>
+
+    <div class="main-content">
+        
+        <!-- PAGE 1: WELCOME -->
+        <div id="welcome" class="page active">
+            <div class="cover-card">
+                <div style="color: var(--cyan); font-size: 0.8rem; letter-spacing: 8px; margin-bottom: 10px;">COMPUTER NETWORKS</div>
+                <h1>NETWORK TRAFFIC MONITORING</h1>
+                <p style="color: var(--text-dim); letter-spacing: 4px; margin-bottom: 50px; font-size: 0.9rem;">ADVANCED NETWORK PROTOCOL ANALYZER</p>
+                
+                <!-- Updated Info Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 20px; text-align: left; border-top: 1px solid var(--border); padding-top: 40px;">
+                    <div>
+                        <small style="color:var(--cyan); text-transform: uppercase; font-weight: 800;">NAME</small>
+                        <p style="margin:8px 0; font-size: 1.1rem;">Ayesha Arif</p>
+                    </div>
+                    <div>
+                        <small style="color:var(--cyan); text-transform: uppercase; font-weight: 800;">Roll No</small>
+                        <p style="margin:8px 0; font-size: 1.1rem;">BCSF24A040</p>
+                    </div>
+                    <div>
+                        <small style="color:var(--cyan); text-transform: uppercase; font-weight: 800;">Submitted To</small>
+                        <p style="margin:8px 0; font-size: 1.1rem;">Ma'am Madeeha</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 50px; width: 220px;" onclick="showPage('monitor')">Initialise System</button>
+            </div>
+        </div>
+
+        <!-- PAGE 2: MONITOR -->
+        <div id="monitor" class="page">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+                <div>
+                    <h2 style="margin:0">CAPTURE ENGINE</h2>
+                    <p style="color:var(--text-dim); margin:5px 0">Real-time packet data.</p>
+                </div>
+                <div id="statusPill" class="status-pill">
+                    <div class="pulse"></div> <span id="statusText">SYSTEM IDLE</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 25px; display: flex; gap: 12px;">
+                <button id="startBtn" class="btn btn-primary" onclick="startMonitoring()">Initialize Capture</button>
+                <button id="stopBtn" class="btn btn-stop" onclick="stopMonitoring()">Kill Process</button>
+            </div>
+            <div id="logBox">_ Waiting for system initialization command...</div>
+        </div>
+
+        <!-- PAGE 3: DATA METRICS -->
+        <div id="stats" class="page">
+            <div style="margin-bottom: 35px;">
+                <h2 style="margin:0;">NETWORK TELEMETRY</h2>
+                <p style="color: var(--text-dim); margin: 5px 0;">Packet analytics.</p>
+            </div>
+
+            <div class="metrics-container">
+                <div class="pro-card">
+                    <div class="chart-flex">
+                        <div>
+                            <small style="color:var(--cyan); font-weight: 800;">TOTAL PACKET FLUX</small>
+                            <div id="statTotalPro" class="big-value">0</div>
+                        </div>
+                        <div class="progress-ring">
+                            <svg width="80" height="80">
+                                <circle class="ring-bg" cx="40" cy="40" r="36"></circle>
+                                <circle id="ringTotal" class="ring-fill" cx="40" cy="40" r="36"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pro-card">
+                    <small style="color:var(--accent); font-weight: 800;">PROTOCOL COMPOSITION</small>
+                    
+                    <div class="dist-bar-wrapper">
+                        <div class="dist-label">
+                            <span>TCP: <span id="tcpCount" style="color:var(--text-main); font-weight:bold;">0</span></span>
+                            <span id="tcpPct">0%</span>
+                        </div>
+                        <div class="dist-bar-bg"><div id="barTCP" class="dist-bar-fill"></div></div>
+                    </div>
+                    
+                    <div class="dist-bar-wrapper">
+                        <div class="dist-label">
+                            <span>UDP: <span id="udpCount" style="color:var(--text-main); font-weight:bold;">0</span></span>
+                            <span id="udpPct">0%</span>
+                        </div>
+                        <div class="dist-bar-bg"><div id="barUDP" class="dist-bar-fill"></div></div>
+                    </div>
+                    
+                    <div class="dist-bar-wrapper">
+                        <div class="dist-label">
+                            <span>ICMP: <span id="icmpCount" style="color:var(--text-main); font-weight:bold;">0</span></span>
+                            <span id="icmpPct">0%</span>
+                        </div>
+                        <div class="dist-bar-bg"><div id="barICMP" class="dist-bar-fill" style="background: var(--danger)"></div></div>
+                    </div>
+                </div>
+
+                <div class="pro-card" style="display: flex; align-items: center;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%;">
+                        <div>
+                            <small style="color:var(--text-dim)">LATENCY</small>
+                            <div style="font-size: 1.3rem; font-weight: bold; color: var(--success);">~12.4ms</div>
+                        </div>
+                        <div>
+                            <small style="color:var(--text-dim)">AVG PACKET SIZE</small>
+                            <div id="avgSizeDisplay" style="font-size: 1.3rem; font-weight: bold; color: var(--accent);">0 B</div>
+                        </div>
+                        <div>
+                            <small style="color:var(--text-dim)">PACKET LOSS</small>
+                            <div style="font-size: 1.3rem; font-weight: bold; color: var(--danger);">0.00%</div>
+                        </div>
+                        <div>
+                            <small style="color:var(--text-dim)">UPTIME</small>
+                            <div id="uptimeDisplay" style="font-size: 1.3rem; font-weight: bold;">00:00:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4: DEEP SEARCH -->
+        <div id="filter" class="page">
+            <h2 style="margin-bottom: 25px;">DEEP INSPECTION</h2>
+            <div class="search-container">
+                <div class="input-group">
+                    <label>Source IP</label>
+                    <input type="text" id="filterSrc" placeholder="192.168.x.x">
+                </div>
+                <div class="input-group">
+                    <label>Dest IP</label>
+                    <input type="text" id="filterDst" placeholder="10.0.x.x">
+                </div>
+                <div class="input-group">
+                    <label>Protocol</label>
+                    <select id="filterProto">
+                        <option value="">ALL</option>
+                        <option value="TCP">TCP</option>
+                        <option value="UDP">UDP</option>
+                        <option value="ICMP">ICMP</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 2" onclick="applyFilter()">Apply filter</button>
+                    <button class="btn btn-outline" style="flex: 1" onclick="clearFilter()">Clear filter</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Source</th>
+                            <th>Destination</th>
+                            <th>Proto</th>
+                            <th>S-Port</th>
+                            <th>D-Port</th>
+                            <th>Service</th>
+                            <th>Size</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packetTableBody">
+                        <tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding: 60px;">Buffers empty.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allPackets = [];
+        let eventSource = null;
+        let startTime = null;
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+                if(nav.getAttribute('onclick').includes(pageId)) nav.classList.add('active');
+            });
+        }
+
+        function log(msg) {
+            const box = document.getElementById("logBox");
+            const time = new Date().toLocaleTimeString();
+            box.innerHTML += `<div><span style="color:var(--cyan); font-weight: bold;">[${time}]</span> ${msg}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function startMonitoring() {
+            fetch("/start").then(r => r.json()).then(() => {
+                startTime = new Date();
+                log("Kernel hook established. Capture started.");
+                document.getElementById("statusPill").classList.add("active-pulse");
+                document.getElementById("statusText").textContent = "LIVE ANALYSIS";
+                
+                if (eventSource) eventSource.close();
+                eventSource = new EventSource("/stream");
+                eventSource.onmessage = (e) => {
+                    const pkts = JSON.parse(e.data);
+                    pkts.forEach(p => {
+                        p.src_port = p.src_port || '--';
+                        p.dst_port = p.dst_port || '--';
+                        p.service = p.service || 'Unknown';
+                        allPackets.push(p);
+                        log(`DATA: ${p.src_ip} -> ${p.dst_ip} | Proto: ${p.protocol}`);
+                    });
+                    updateTable(allPackets);
+                };
+            }).catch(err => log("Error connecting to backend API."));
+        }
+
+        function stopMonitoring() {
+            fetch("/stop").then(r => r.json()).then(() => {
+                log("Capture killed. Data preserved.");
+                document.getElementById("statusPill").classList.remove("active-pulse");
+                document.getElementById("statusText").textContent = "SYSTEM IDLE";
+                if (eventSource) eventSource.close();
+            });
+        }
+
+        function updateTable(packets) {
+            const tbody = document.getElementById("packetTableBody");
+            if(packets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding: 60px;">Buffers empty.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = "";
+            const display = packets.slice(-20).reverse();
+            display.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td>${p.time}</td>
+                    <td style="color:var(--cyan); font-family: monospace;">${p.src_ip}</td>
+                    <td style="font-family: monospace;">${p.dst_ip}</td>
+                    <td><span style="color:var(--accent); font-weight:bold;">${p.protocol}</span></td>
+                    <td>${p.src_port}</td>
+                    <td>${p.dst_port}</td>
+                    <td><small style="background:#1e293b; padding:2px 6px; border-radius:4px;">${p.service}</small></td>
+                    <td>${p.size}B</td>
+                </tr>`;
+            });
+        }
+
+        function applyFilter() {
+            const proto = document.getElementById("filterProto").value;
+            const src = document.getElementById("filterSrc").value;
+            const dst = document.getElementById("filterDst").value;
+            let filtered = allPackets;
+            if(proto) filtered = filtered.filter(p => p.protocol === proto);
+            if(src) filtered = filtered.filter(p => p.src_ip.includes(src));
+            if(dst) filtered = filtered.filter(p => p.dst_ip.includes(dst));
+            updateTable(filtered);
+        }
+
+        function clearFilter() {
+            document.getElementById("filterSrc").value = "";
+            document.getElementById("filterDst").value = "";
+            document.getElementById("filterProto").value = "";
+            updateTable(allPackets);
+        }
+
+        setInterval(() => {
+            if(document.getElementById("statusText").textContent !== "SYSTEM IDLE") {
+                const total = allPackets.length;
+                if(total === 0) return;
+
+                const tcp = allPackets.filter(p => p.protocol === 'TCP').length;
+                const udp = allPackets.filter(p => p.protocol === 'UDP').length;
+                const icmp = allPackets.filter(p => p.protocol === 'ICMP').length;
+
+                document.getElementById("statTotalPro").textContent = total.toLocaleString();
+                document.getElementById("tcpCount").textContent = tcp.toLocaleString();
+                document.getElementById("udpCount").textContent = udp.toLocaleString();
+                document.getElementById("icmpCount").textContent = icmp.toLocaleString();
+
+                const tcpP = ((tcp/total)*100).toFixed(1);
+                const udpP = ((udp/total)*100).toFixed(1);
+                const icmpP = ((icmp/total)*100).toFixed(1);
+
+                document.getElementById("tcpPct").textContent = tcpP + "%";
+                document.getElementById("udpPct").textContent = udpP + "%";
+                document.getElementById("icmpPct").textContent = icmpP + "%";
+
+                document.getElementById("barTCP").style.width = tcpP + "%";
+                document.getElementById("barUDP").style.width = udpP + "%";
+                document.getElementById("barICMP").style.width = icmpP + "%";
+
+                const ring = document.getElementById("ringTotal");
+                const offset = 226 - (226 * (Math.min(total, 5000) / 5000)); 
+                ring.style.strokeDashoffset = offset;
+
+                const totalSize = allPackets.reduce((sum, p) => sum + (parseInt(p.size) || 0), 0);
+                const avgSize = (totalSize / total).toFixed(1);
+                document.getElementById("avgSizeDisplay").textContent = `${avgSize} B`;
+
+                const now = new Date();
+                const diff = Math.floor((now - startTime) / 1000);
+                const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+                const s = (diff % 60).toString().padStart(2, '0');
+                document.getElementById("uptimeDisplay").textContent = `${h}:${m}:${s}`;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
