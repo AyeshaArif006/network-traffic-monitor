@@ -1,13 +1,13 @@
 # ============================================================
 # What this file does:
-#   - Creates a website using Flask
-#   - Provides URLs (routes) that the browser can visit
-#   - Connects the website to our sniffer.py
+#   Creates a website using Flask
+#   Provides URLs (routes) that the browser can visit
+#   Connects the website to our sniffer.py
 # ============================================================
 
 
 # ------------------------------------------------------------
-# STEP 1: IMPORTS  (bring in tools we need)
+# STEP 1: IMPORTS
 # ------------------------------------------------------------
 
 from flask import Flask, render_template, jsonify, Response
@@ -111,7 +111,7 @@ def stats():
 
 
 # ------------------------------------------------------------
-# ROUTE 6:  /stream  ← The most advanced route
+# ROUTE 6:  /stream  
 #
 # This uses "Server-Sent Events" (SSE) for REAL-TIME updates.
 #
