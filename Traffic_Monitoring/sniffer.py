@@ -1,9 +1,8 @@
 # ============================================================
-# sniffer.py  —  Beginner-Friendly Version
 # What this file does:
-#   - Captures network packets using Scapy
-#   - Saves them to a list AND a CSV file
-#   - Provides helper functions for the Flask app
+#   Captures network packets using Scapy
+#   Saves them to a list AND a CSV file
+#   Provides helper functions for the Flask app
 # ============================================================
 
 
@@ -26,7 +25,7 @@ import threading
 # Without this, starting the sniffer would freeze the whole website
 
 import csv
-# csv = lets us save data to a .csv file (opens in Excel)
+# csv = lets us save data to a .csv file
 
 import os
 # os = lets us check if a file exists and delete it
