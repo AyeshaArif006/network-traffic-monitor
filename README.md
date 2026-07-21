@@ -38,7 +38,9 @@ Clone the repository
 
 git clone https://github.com/AyeshaArif006/network-traffic-monitor.git
 
-   cd network-traffic-monitor
+cd network-traffic-monitor
+   
+cd Traffic_Monitoring
 
 # Install dependencies
 
