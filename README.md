@@ -1,5 +1,6 @@
 # Network-traffic-monitor
 A real time network packet sniffer with a live web dashboard. Built with Python, Scapy, and Flask. Captures TCP, UDP, and ICMP traffic and displays it in your browser as it happens.
+
 # Features
 
 Live packet capture — real-time sniffing via Scapy with Server-Sent Events.
@@ -15,7 +16,7 @@ Filtering — filter by protocol, source IP, or destination IP on the fly
 CSV export — all captured packets are automatically saved to packets.csv
 
 Activity log — real-time event log panel in the dashboard
-# network-traffic-monitor
+# Network-traffic-monitor
 │
 ├── app.py             
 ├── sniffer.py               
@@ -35,20 +36,20 @@ Root / Administrator privileges( required by Scapy for raw packet access)
 
 Clone the repository
 
-bash   git clone https://github.com/AyeshaArif006/network-traffic-monitor.git
+git clone https://github.com/AyeshaArif006/network-traffic-monitor.git
+
    cd network-traffic-monitor
 
 # Install dependencies
 
-bash   pip install flask scapy
+pip install flask scapy
 
--Run the app
+# Run the app
 
-On Linux / macOS (requires sudo for packet capture):
-sudo python app.py
+On Linux :sudo python app.py
 
-On Windows (run terminal as Administrator):
-bash   python app.py
+On Windows:
+ python app.py
 
 # Open the dashboard
 Visit http://localhost:5000 in your browser
